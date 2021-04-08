@@ -1,0 +1,53 @@
+cluster_id: evaluation
+config_file: /etc/redpanda/redpanda.yaml
+organization: 41north
+pandaproxy: {}
+redpanda:
+  admin:
+    address: 0.0.0.0
+    port: 9644
+  advertised_kafka_api:
+  - address: rp-3
+    name: plaintext
+    port: 29094
+  - address: localhost
+    name: outside
+    port: 9094
+  advertised_rpc_api:
+    address: rp-3
+    port: 33147
+  data_directory: /var/lib/redpanda/data
+  developer_mode: true
+  fetch_reads_debounce_timeout: 1000
+  kafka_api:
+  - address: 0.0.0.0
+    name: plaintext
+    port: 29094
+  - address: 0.0.0.0
+    name: outside
+    port: 9094
+  node_id: 2
+  rpc_server:
+    address: 0.0.0.0
+    port: 33147
+  seed_servers:
+  - host:
+      address: rp-1
+      port: 33145
+rpk:
+  coredump_dir: /var/lib/redpanda/coredump
+  enable_memory_locking: false
+  enable_usage_stats: false
+  overprovisioned: true
+  tune_aio_events: false
+  tune_clocksource: false
+  tune_coredump: false
+  tune_cpu: false
+  tune_disk_irq: false
+  tune_disk_nomerges: false
+  tune_disk_scheduler: false
+  tune_disk_write_cache: false
+  tune_fstrim: false
+  tune_network: false
+  tune_swappiness: false
+  tune_transparent_hugepages: false

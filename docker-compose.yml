@@ -1,0 +1,100 @@
+version: "3.8"
+
+networks:
+
+  messaging:
+    name: messaging
+
+volumes:
+
+  rp-1:
+    name: rp-1
+  rp-2:
+    name: rp-2
+  rp-3:
+    name: rp-3
+
+services:
+
+    rp-1:
+      image: vectorized/redpanda:v21.4.6
+      container_name: rp-1
+      volumes:
+        - rp-1:/var/lib/redpanda/data
+        - ./redpanda/rp-1.yaml:/etc/redpanda/redpanda.yaml
+      networks:
+        - messaging
+      ports:
+        - 9092:9092
+      command: >
+        redpanda start
+        --smp 1
+        --memory 1G
+        --reserve-memory 0M
+        --overprovisioned
+        --node-id 0
+        --check=false
+        --logger-log-level kafka=trace
+      restart: on-failure
+
+    rp-2:
+      image: vectorized/redpanda:v21.4.6
+      container_name: rp-2
+      volumes:
+        - rp-2:/var/lib/redpanda/data
+        - ./redpanda/rp-2.yaml:/etc/redpanda/redpanda.yaml
+      networks:
+        - messaging
+      ports:
+        - 9093:9093
+      command: >
+        redpanda start
+        --smp 1
+        --memory 1G
+        --reserve-memory 0M
+        --overprovisioned
+        --node-id 1
+        --seeds "rp-1:33145"
+        --check=false
+        --logger-log-level kafka=trace
+      restart: on-failure
+
+    rp-3:
+      image: vectorized/redpanda:v21.4.6
+      container_name: rp-3
+      volumes:
+        - rp-3:/var/lib/redpanda/data
+        - ./redpanda/rp-3.yaml:/etc/redpanda/redpanda.yaml
+      networks:
+        - messaging
+      ports:
+        - 9094:9094
+      command: >
+        redpanda start
+        --smp 1
+        --memory 1G
+        --reserve-memory 0M
+        --overprovisioned
+        --node-id 2
+        --seeds "rp-1:33145"
+        --check=false
+        --logger-log-level kafka=trace
+      restart: on-failure
+
+    schema-registry:
+      image: confluentinc/cp-schema-registry:6.1.1
+      container_name: schema-registry
+      depends_on:
+        - rp-1
+        - rp-2
+        - rp-3
+      networks:
+        - messaging
+      ports:
+        - 8081:8081
+      restart: on-failure
+      environment:
+        SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: DEBUG
+        SCHEMA_REGISTRY_HOST_NAME: schema-registry
+        SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://rp-1:29092
+        SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
